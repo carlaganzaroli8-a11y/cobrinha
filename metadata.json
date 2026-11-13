@@ -1,0 +1,6 @@
+{
+  "name": "Snake Arena — Jogo da Cobrinha",
+  "description": "Jogo estilo Snake em HTML, CSS e JavaScript puro com 5 níveis progressivos de dificuldade, controles por teclado e toque, e ranking Top 10 persistente.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

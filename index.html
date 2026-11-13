@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Arena — Jogo da Cobrinha</title>
+    <meta
+      name="description"
+      content="Jogo estilo Snake em HTML, CSS e JavaScript puro com 5 níveis progressivos de dificuldade, controles por teclado e toque, e ranking Top 10 persistente."
+    />
+    <meta property="og:title" content="Snake Arena — Jogo da Cobrinha" />
+    <meta
+      property="og:description"
+      content="Jogo estilo Snake em HTML, CSS e JavaScript puro com 5 níveis progressivos de dificuldade, controles por teclado e toque, e ranking Top 10 persistente."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-title">Snake Arena</span>
+        </div>
+
+        <nav class="topbar-meta" aria-label="Informações da partida">
+          <span>5 níveis progressivos</span>
+          <span aria-hidden="true">·</span>
+          <span>Ranking Top 10</span>
+        </nav>
+
+        <div class="topbar-actions">
+          <button
+            type="button"
+            id="btn-sound"
+            class="btn btn-ghost"
+            aria-pressed="true"
+            title="Alternar efeitos sonoros"
+          >
+            Som: Ligado
+          </button>
+          <button
+            type="button"
+            id="btn-pause"
+            class="btn btn-secondary"
+            disabled
+          >
+            Pausar
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="stage-column" aria-label="Área do jogo">
+          <div class="hud-grid" aria-live="polite">
+            <div class="hud-cell">
+              <span class="hud-label">Pontuação</span>
+              <strong class="hud-value tabular" id="hud-score">0</strong>
+            </div>
+            <div class="hud-cell">
+              <span class="hud-label">Nível atual</span>
+              <strong class="hud-value tabular" id="hud-level">1 / 5</strong>
+            </div>
+            <div class="hud-cell">
+              <span class="hud-label">Velocidade</span>
+              <strong class="hud-value tabular" id="hud-speed">1.0×</strong>
+            </div>
+            <div class="hud-cell hud-cell-progress">
+              <div class="hud-progress-head">
+                <span class="hud-label">Próxima fase</span>
+                <span class="hud-target tabular" id="hud-target">0 / 50 pts</span>
+              </div>
+              <div
+                class="progress-track"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                id="level-progress-bar"
+              >
+                <div class="progress-fill" id="level-progress-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="board-shell">
+            <canvas
+              id="game-canvas"
+              width="520"
+              height="520"
+              aria-label="Tabuleiro do jogo Snake"
+            ></canvas>
+
+            <div
+              class="level-banner"
+              id="level-banner"
+              aria-live="assertive"
+              hidden
+            >
+              <span class="level-banner-kicker" id="level-banner-kicker">Nível 2</span>
+              <strong class="level-banner-title" id="level-banner-title">Quatro Pilares</strong>
+            </div>
+
+            <div class="board-overlay" id="overlay-start">
+              <div class="overlay-card">
+                <p class="overlay-kicker">Edição Arcade Clássica</p>
+                <h1 class="overlay-title">Pronto para jogar Snake?</h1>
+                <p class="overlay-subtitle">
+                  Colete frutas para pontuar, avance pelos 5 níveis de dificuldade
+                  e conquiste seu lugar no ranking Top 10.
+                </p>
+
+                <form id="start-form" class="start-form" novalidate>
+                  <label for="player-name" class="field-label">
+                    Nome do jogador
+                  </label>
+                  <input
+                    type="text"
+                    id="player-name"
+                    name="playerName"
+                    class="text-input"
+                    placeholder="Digite seu nome (padrão: Jogador)"
+                    maxlength="20"
+                    autocomplete="nickname"
+                  />
+                  <button type="submit" id="btn-play" class="btn btn-primary btn-lg">
+                    Jogar
+                  </button>
+                </form>
+
+                <p class="overlay-hint">
+                  Atalhos: <kbd>Enter</kbd> ou <kbd>Espaço</kbd> para iniciar · <kbd>P</kbd> para pausar
+                </p>
+              </div>
+            </div>
+
+            <div class="board-overlay" id="overlay-pause" hidden>
+              <div class="overlay-card">
+                <p class="overlay-kicker">Partida em espera</p>
+                <h2 class="overlay-title">Jogo pausado</h2>
+                <p class="overlay-subtitle">
+                  Jogador: <strong id="pause-player-name">Jogador</strong> ·
+                  <span class="tabular" id="pause-score">0 pts</span>
+                </p>
+                <div class="overlay-actions">
+                  <button type="button" id="btn-resume" class="btn btn-primary">
+                    Retomar
+                  </button>
+                  <button type="button" id="btn-restart-pause" class="btn btn-secondary">
+                    Reiniciar
+                  </button>
+                </div>
+                <p class="overlay-hint">
+                  Pressione <kbd>P</kbd> ou <kbd>Espaço</kbd> para continuar
+                </p>
+              </div>
+            </div>
+
+            <div class="board-overlay" id="overlay-gameover" hidden>
+              <div class="overlay-card">
+                <p class="overlay-kicker" id="gameover-reason">Fim de jogo</p>
+                <h2 class="overlay-title">Fim da partida</h2>
+
+                <div class="gameover-stats">
+                  <div class="stat-box">
+                    <span class="stat-label">Pontuação final</span>
+                    <strong class="stat-value tabular" id="gameover-score">0</strong>
+                  </div>
+                  <div class="stat-box">
+                    <span class="stat-label">Nível alcançado</span>
+                    <strong class="stat-value tabular" id="gameover-level">1</strong>
+                  </div>
+                </div>
+
+                <p class="ranking-feedback" id="gameover-rank-msg"></p>
+
+                <div class="overlay-actions">
+                  <button type="button" id="btn-play-again" class="btn btn-primary">
+                    Jogar novamente
+                  </button>
+                  <button type="button" id="btn-change-player" class="btn btn-secondary">
+                    Trocar nome
+                  </button>
+                </div>
+                <p class="overlay-hint">
+                  Pressione <kbd>Enter</kbd> ou <kbd>Espaço</kbd> para jogar novamente
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="touch-bar">
+            <div class="touch-dpad" role="group" aria-label="Controles direcionais">
+              <button
+                type="button"
+                class="dpad-btn dpad-up"
+                data-dir="UP"
+                aria-label="Mover para cima"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                class="dpad-btn dpad-left"
+                data-dir="LEFT"
+                aria-label="Mover para a esquerda"
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                class="dpad-btn dpad-down"
+                data-dir="DOWN"
+                aria-label="Mover para baixo"
+              >
+                ▼
+              </button>
+              <button
+                type="button"
+                class="dpad-btn dpad-right"
+                data-dir="RIGHT"
+                aria-label="Mover para a direita"
+              >
+                ▶
+              </button>
+            </div>
+            <p class="touch-tip">
+              No celular, use os botões direcionais ou deslize o dedo sobre o tabuleiro.
+            </p>
+          </div>
+        </section>
+
+        <aside class="sidebar-column" aria-label="Níveis e ranking">
+          <section class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Fases de Dificuldade</h2>
+              <span class="panel-meta" id="active-level-name">Nível 1: Campo Aberto</span>
+            </div>
+            <ol class="level-list" id="level-list"></ol>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Ranking Top 10</h2>
+                <p class="panel-subtitle">Melhores pontuações salvas neste navegador</p>
+              </div>
+              <div class="clear-wrap" id="clear-ranking-wrap">
+                <button type="button" id="btn-clear-ranking" class="btn btn-ghost btn-sm">
+                  Limpar
+                </button>
+                <div class="confirm-inline" id="clear-confirm-box" hidden>
+                  <button type="button" id="btn-confirm-clear" class="btn btn-danger btn-sm">
+                    Confirmar
+                  </button>
+                  <button type="button" id="btn-cancel-clear" class="btn btn-ghost btn-sm">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="ranking-empty" class="ranking-empty">
+              Nenhuma pontuação registrada ainda. Jogue uma partida para inaugurar o placar.
+            </div>
+
+            <div class="ranking-table-wrap" id="ranking-table-wrap" hidden>
+              <table class="ranking-table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Jogador</th>
+                    <th scope="col">Nível</th>
+                    <th scope="col" class="num-col">Pontos</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        <p class="creator-credit">Criado por [NOME DO CRIADOR]</p>
+        <p class="footer-controls">
+          Setas ou WASD: mover · P: pausar · Enter / Espaço: jogar
+        </p>
+      </footer>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
